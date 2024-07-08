@@ -25,37 +25,39 @@ class QRCodeAnalyzer(
 
     override fun analyze(image: ImageProxy) {
 
-        val bytes = image.planes.first().buffer.toByteArray() // this returns raw data
+        if (image.format in supportedImageTypes){
+            val bytes = image.planes.first().buffer.toByteArray() // this returns raw data
 
-        val source = PlanarYUVLuminanceSource(
-            bytes,
-            image.width,
-            image.height,
-            0,
-            0,
-            image.width,
-            image.height,
-            false
-        )
-        val binaryBitmap =
-            BinaryBitmap(HybridBinarizer(source)) // it has the data about scanned qr code
+            val source = PlanarYUVLuminanceSource(
+                bytes,
+                image.width,
+                image.height,
+                0,
+                0,
+                image.width,
+                image.height,
+                false
+            )
+            val binaryBitmap =
+                BinaryBitmap(HybridBinarizer(source)) // it has the data about scanned qr code
 
-        try {
-            //multi format reader , reads different format of qr codes and bar codes
-            val result = MultiFormatReader().apply {
-                //set hints defines what kind of codes should be scan using camera
-                setHints(
-                    mapOf(
-                        DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE)
+            try {
+                //multi format reader , reads different format of qr codes and bar codes
+                val result = MultiFormatReader().apply {
+                    //set hints defines what kind of codes should be scan using camera
+                    setHints(
+                        mapOf(
+                            DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE)
+                        )
                     )
-                )
-            }.decodeWithState(binaryBitmap)
+                }.decodeWithState(binaryBitmap)
 
-            QRCodeScanned(result.text)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            image.close()
+                QRCodeScanned(result.text)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                image.close()
+            }
         }
     }
 
